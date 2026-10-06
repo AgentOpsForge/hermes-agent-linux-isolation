@@ -22,6 +22,6 @@ private data before sending.
 
 Vulnerabilities in Hermes Agent go to Nous Research, following their
 [security policy](https://github.com/NousResearch/hermes-agent/security/policy)
-(GitHub Security Advisory or security@nousresearch.com). This project does not handle them.
+(GitHub Security Advisory or <security@nousresearch.com>). This project does not handle them.
 If a finding affects both, report it to Nous Research first; the related chapter here is
 published only after a fix or after the disclosure period agreed with them.
