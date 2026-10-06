@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Question about the guide
+    url: https://github.com/AgentOpsForge/hermes-agent-linux-isolation/discussions
+    about: Ask in Discussions. There is no support (see SUPPORT.md).
+  - name: Security problem in this guide or its scripts
+    url: https://github.com/AgentOpsForge/hermes-agent-linux-isolation/security/advisories/new
+    about: Report privately, not as an issue.
+  - name: Bug or question about Hermes Agent itself
+    url: https://github.com/NousResearch/hermes-agent/issues
+    about: This project does not develop Hermes Agent.

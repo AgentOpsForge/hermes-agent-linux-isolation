@@ -8,3 +8,4 @@ All notable changes to this project are documented here. The format follows
 ### Added
 
 - Repository skeleton: README, support, security and contributing guidelines, changelog.
+- Issue templates (bug report, feature request), issue contact links, pull request template.
