@@ -1,0 +1,11 @@
+# Markdown lint configuration (markdownlint-cli2)
+config:
+  default: true
+  # Prose lines wrap at about 100 characters; tables, code and headings are exempt.
+  MD013:
+    line_length: 120
+    tables: false
+    code_blocks: false
+    headings: false
+ignores:
+  - "node_modules/**"
