@@ -13,6 +13,7 @@
 ## Checklist
 
 - [ ] No private data (host names, addresses, user names, tokens, keys, log excerpts with any of these)
+- [ ] Local scan passed (pre-push hook from CONTRIBUTING.md)
 - [ ] Scripts pass `shellcheck`; read-only scripts say so in their header
 - [ ] Changing scripts back up first and print how to roll back
 - [ ] Scripts do not print secrets
