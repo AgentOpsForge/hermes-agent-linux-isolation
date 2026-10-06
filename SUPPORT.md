@@ -6,7 +6,7 @@ provided as is.
 Where to go:
 
 | Topic | Place |
-|---|---|
+| --- | --- |
 | Question about this guide or its scripts | [Discussions](https://github.com/AgentOpsForge/hermes-agent-linux-isolation/discussions) |
 | Error or omission in this guide | an issue in this repository (use the bug report template) |
 | Bug or question about Hermes Agent itself | [Hermes Agent issues](https://github.com/NousResearch/hermes-agent/issues) |
