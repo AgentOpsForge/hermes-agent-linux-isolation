@@ -43,12 +43,17 @@ provider, and a compromised Hermes Agent release.
 | Threat from one agent | Mechanism | Holds as long as |
 | --- | --- | --- |
 | Reading or changing another agent's profile, memory or credentials | one user and group per agent; profile mode `0700` | no group, ACL or shared directory grants access |
-| Changing its own code, configuration or rules | code and configuration owned by root, read-only for agents; `ProtectSystem=strict` | no file under `/opt`, `/usr/local` or `/etc` is owned by or writable for the agent |
+| Changing the shared code and extensions | owned by root, read-only for agents; `ProtectSystem=strict` | no file under `/opt`, `/usr/local` or `/etc` is owned by or writable for the agent |
+| Changing its own configuration, instructions or keys (`config.yaml`, `SOUL.md`, `.hermes.md`, `.env`) | the files belong to root, are readable by the agent's group (`0640`) and carry the immutable attribute | the profile carries no ACLs; with an ACL, `chmod` only sets the mask and the agent may lose read access or keep write access |
 | Sending signals to or tracing another agent | the kernel refuses this across users; no capabilities, `NoNewPrivileges=yes` | the agent gets no capabilities and no sudo rights |
 | Seeing other agents' processes, command lines or environment | `ProtectProc=invisible` | the hardening is active for every agent unit |
 | Reading files that others leave in `/tmp` | `PrivateTmp=yes` | as above |
 | Reaching another agent through a side door | communication only through explicit interfaces: agent-to-agent calls with a token per pair of agents, Kanban boards with group permissions | each interface authenticates its caller |
 | Using up memory or processes for everyone | `MemoryMax` and `TasksMax` per unit **and** per user slice | limits are set on both levels |
+
+Locking these files has a visible effect: features with which an agent writes its own configuration — for
+example "always allow" for a command, or setting a home channel — still work for the running process but are
+no longer saved. Hermes Agent logs a warning and continues. Configuration changes are made by root.
 
 Hermes Agent starts some work — Kanban workers, cron runs, background commands — through the user's own
 systemd manager instead of the gateway unit. Those processes inherit the gateway's file system and privilege
@@ -74,8 +79,10 @@ network. User isolation does not limit where an agent sends its own data. Per-us
 later chapter.
 
 **An agent fully controls its own data and credentials.** A misled agent can leak or misuse everything its user
-can read, including its own tokens and messaging accounts. Give each agent only what its role needs, and keep
-long-lived keys out of agents where possible (see the credential pattern chapter).
+can read, including its own tokens and messaging accounts. It can also change everything in its profile that is
+not locked — memory, sessions, skills it writes, cron jobs — and so influence its own later behaviour. Give each
+agent only what its role needs, and keep long-lived keys out of agents where possible (see the credential pattern
+chapter).
 
 **The model provider sees what the agent sends.** Prompts, tool results and file contents leave the host. Host
 isolation does not change this. Process sensitive data with a local model, in an agent that has no cloud model
