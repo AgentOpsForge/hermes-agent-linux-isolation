@@ -12,3 +12,8 @@ All notable changes to this project are documented here. The format follows
 - CI: ShellCheck, Markdown lint, link check and secret scan (gitleaks) on every push and pull request.
 - Private-data checklist and local pre-push scan (gitleaks and private strings) in CONTRIBUTING.md.
 - Chapter 1: threat model.
+
+### Changed
+
+- Chapter 1: an agent's own configuration, instructions and keys are protected by root ownership and the
+  immutable attribute, not by the file system boundary alone; profiles must not carry ACLs.
