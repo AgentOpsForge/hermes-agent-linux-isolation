@@ -65,7 +65,7 @@ owning gateway ever acts on its own worker.
 Hermes upstream is moving toward multiplexing — one process serving all profiles under **one** Linux
 user, with separation only in-process. That is in tension with this guide's model of one gateway per
 Linux user. It is not triggered automatically, but it is the reason patches P-03/P-04 are kept local
-rather than submitted. See "Limits and known issues" for how to weigh it.
+rather than submitted. See [Limits and known issues](10-limits.md) for how to weigh it.
 
 ## What is automated
 

@@ -65,7 +65,7 @@ Planned chapters (added one by one):
 7. [Collaboration through Kanban](docs/07-kanban.md)
 8. [Credential pattern: a dedicated service holds the keys](docs/08-credentials.md)
 9. [Operations — updates, checks, backup](docs/09-operations.md)
-10. Limits and known issues
+10. [Limits and known issues](docs/10-limits.md)
 
 ## Design
 
