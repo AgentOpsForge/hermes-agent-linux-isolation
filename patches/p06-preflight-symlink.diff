@@ -1,0 +1,56 @@
+diff --git a/hermes_state_repair.py b/hermes_state_repair.py
+index 81e1609543..6f66d52e57 100644
+--- a/hermes_state_repair.py
++++ b/hermes_state_repair.py
+@@ -548,6 +548,11 @@ def preflight_db_writability(db_path: Path, *, db_label: str = "state.db") -> No
+     """
+     if str(db_path) == ":memory:" or str(db_path).startswith("file:"):
+         return
++    # Local patch P-06: SQLite follows a symlinked database path and creates the -wal/-shm sidecars
++    # next to the TARGET, so check the resolved location, not the directory holding the link.
++    with contextlib.suppress(OSError, RuntimeError):
++        if Path(db_path).is_symlink():
++            db_path = Path(db_path).resolve()
+     home: Optional[Path] = None
+     with contextlib.suppress(Exception):  # pragma: no cover - defensive
+         home = Path(get_hermes_home()).resolve()
+diff --git a/tests/hermes_state/test_hermes_state_readonly_preflight.py b/tests/hermes_state/test_hermes_state_readonly_preflight.py
+index 263f201e0c..1cc7d162ff 100644
+--- a/tests/hermes_state/test_hermes_state_readonly_preflight.py
++++ b/tests/hermes_state/test_hermes_state_readonly_preflight.py
+@@ -188,3 +188,35 @@ class TestSessionDBIntegration:
+         finally:
+             os.chmod(db_path, 0o644)
+             hermes_state._set_last_init_error(None)
++
++
++class TestSymlinkedDatabase:
++    """Local patch P-06: a symlinked DB is checked where SQLite writes its sidecars (the target)."""
++
++    def test_readonly_link_dir_with_writable_target_passes(self, hermes_home, tmp_path):
++        target_dir = tmp_path / "boards" / "default"
++        target_dir.mkdir(parents=True)
++        _make_db(target_dir / "kanban.db")
++        link_dir = tmp_path / "root"
++        link_dir.mkdir()
++        link = link_dir / "kanban.db"
++        link.symlink_to(target_dir / "kanban.db")
++        os.chmod(link_dir, 0o555)
++        try:
++            preflight_db_writability(link, db_label="kanban.db")  # must not raise
++            assert not os.access(link_dir, os.W_OK)               # and must not chmod the link dir
++        finally:
++            os.chmod(link_dir, 0o755)
++
++    def test_readonly_target_dir_still_refused(self, hermes_home, tmp_path):
++        target_dir = tmp_path / "ro-target"
++        target_dir.mkdir()
++        _make_db(target_dir / "kanban.db")
++        link = tmp_path / "kanban.db"
++        link.symlink_to(target_dir / "kanban.db")
++        os.chmod(target_dir, 0o555)
++        try:
++            with pytest.raises(sqlite3.OperationalError):
++                preflight_db_writability(link, db_label="kanban.db")
++        finally:
++            os.chmod(target_dir, 0o755)

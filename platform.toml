@@ -1,0 +1,126 @@
+# platform.toml - single source of truth for a Hermes host (schema 1).
+# Describes domains, zones, vaults, services and agents. The tools
+# (hermes-agent-lib.py check / create / lock / verify) derive everything else from this file:
+#
+#   - groups of an agent   = kanban group of its domain (if it has kanban) + vault-<v>-rw / vault-<v>-ro
+#   - ReadWritePaths       = profile + kanban home (if kanban) + rw vaults + extra_rw
+#   - allowed .env names   = A2A_AGENT_NAME, A2A_PORT, A2A_PEER_TOKENS, A2A_TOKEN_<PEER> (if a2a) + env_allowed
+#
+# Rules checked against this file (hermes-agent-lib.py check):
+#   - every agent has exactly one zone, every zone exactly one domain
+#   - write access to a vault only from agents in one of the vault's zones; read may cross zones within a domain
+#   - A2A only within a domain (cross-domain pairs must be listed in [exceptions]), always two-sided
+#   - kanban only for agents whose domain has kanban, on a board of that domain; dispatch needs linger
+#   - ids unique and inside id_range; agent uid = gid = 2000 + (a2a_port - 9900)
+#   - admins are never members of agent, vault or kanban groups
+# No secrets in this file. Secrets stay in the .env of each profile.
+#
+# This is a neutral EXAMPLE. Replace host, domains, agents and vaults with your own before use.
+
+schema = 1
+
+[host]
+name = "example-host"
+install = "/opt/hermes-agent"          # root:root, read-only for agents
+root = "/var/lib/hermes"               # profiles live under <root>/profiles/<agent>
+root_group = "root"
+root_mode = "711"                      # others may traverse, nobody may list
+vaults_root = "/srv/vaults"            # Git repositories, one directory per vault
+id_range = [2000, 2199]
+admins = ["admin"]                     # never in agent, vault or kanban groups; admin work only with sudo
+
+# --- Domains: whose agents work together; a Kanban board is shared only within one domain -------------
+[domains.team]
+description = "Example team domain"
+owner = "admin"
+orchestrator = "assistant"
+
+[domains.team.kanban]
+home = "/var/lib/hermes/kanban"
+group = "kanban-team"
+gid = 2110
+boards = ["team"]
+acl_users = ["github"]                 # the GitHub service reaches the board by ACL, not by group
+
+# --- Zones: trust zones inside a domain. No Linux group; used only for the rules above ----------------
+[zones.Z1]
+name = "Private"
+domain = "team"
+
+[zones.Z2]
+name = "Infrastructure"
+domain = "team"
+
+# --- Vaults: Git repositories under vaults_root, synced by the GitHub service -------------------------
+[vaults.team-wiki]
+gids = [2120, 2121]                    # [rw, ro]
+zones = ["Z1"]
+rw = ["assistant"]
+ro = []
+
+# --- Services: system users that are not agents -------------------------------------------------------
+[services.github]
+uid = 2091
+home = "/var/lib/github"
+vaults_rw = "all"                      # member of every vault-<v>-rw
+kanban_acl = ["team"]
+
+# --- Agents -------------------------------------------------------------------------------------------
+[agents.assistant]
+description = "Orchestrator; creates and reviews tasks"
+zone = "Z1"
+role = "orchestrator"
+uid = 2000                             # id rule: uid = 2000 + (a2a_port - 9900)
+gid = 2000
+model = "example-model"
+provider = "example-provider"
+base_url = "https://example.invalid/api"
+a2a_port = 9900
+a2a_peers = ["worker"]
+plugins = ["platforms/a2a"]
+kanban = { board = "team", dispatch = false }      # orchestrator creates/reviews, does not dispatch
+toolsets.cli = ["a2a", "file", "memory", "skills", "todo", "web"]
+toolsets.a2a = ["file", "memory", "skills", "todo"]
+toolsets.cron = ["file", "memory", "skills", "todo", "web"]
+limits = { mem_high = "768M", mem_max = "1G", slice_mem = "768M" }
+linger = true
+timezone = "UTC"
+
+[agents.worker]
+description = "Worker with A2A back to the orchestrator"
+zone = "Z2"
+role = "worker"
+uid = 2001
+gid = 2001
+model = "example-model"
+provider = "example-provider"
+base_url = "https://example.invalid/api"
+a2a_port = 9901
+a2a_peers = ["assistant"]
+plugins = ["platforms/a2a"]
+kanban = { board = "team", dispatch = true, max = 1 }
+toolsets.cli = ["a2a", "file", "memory", "skills", "terminal", "todo", "web"]
+toolsets.a2a = ["file", "memory", "skills", "todo", "web"]
+toolsets.cron = []
+limits = { mem_high = "768M", mem_max = "1G", slice_mem = "768M" }
+linger = true
+timezone = "UTC"
+
+[agents.analyst]
+description = "Worker without A2A and without terminal (minimal surface)"
+zone = "Z2"
+role = "worker"
+uid = 2008
+gid = 2008
+model = "example-model"
+provider = "example-provider"
+base_url = "https://example.invalid/api"
+# no a2a_port: port 9908 (-> uid 2008 under the id rule) stays reserved
+kanban = { board = "team", dispatch = true, max = 1 }
+toolsets.cli = ["todo"]
+toolsets.a2a = []
+toolsets.cron = []
+soul = "agents/example-SOUL.md"        # relative to this file
+limits = { mem_high = "768M", mem_max = "1G", slice_mem = "768M" }
+linger = true
+timezone = "UTC"

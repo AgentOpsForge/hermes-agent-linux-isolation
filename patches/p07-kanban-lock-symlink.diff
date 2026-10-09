@@ -1,0 +1,97 @@
+diff --git a/hermes_cli/kanban_db_connect.py b/hermes_cli/kanban_db_connect.py
+index 0886ef4725..c9a4003cf1 100644
+--- a/hermes_cli/kanban_db_connect.py
++++ b/hermes_cli/kanban_db_connect.py
+@@ -112,6 +112,19 @@ def _unlock(handle) -> None:
+         fcntl.flock(handle.fileno(), fcntl.LOCK_UN)
+ 
+ 
++def _lock_anchor(path: Path) -> Path:
++    """Local patch P-07: place board lock files next to the real database.
++
++    SQLite follows a symlinked ``kanban.db`` and writes ``-wal``/``-shm`` next to the
++    TARGET; the init and dispatch locks must live there too, otherwise a read-only
++    directory holding only the link breaks every connect (and silently disables the
++    single-writer dispatch lock). ``repair`` already locks the resolved path."""
++    with contextlib.suppress(OSError, RuntimeError):
++        if path.is_symlink():
++            return path.resolve()
++    return path
++
++
+ @contextlib.contextmanager
+ def _cross_process_init_lock(path: Path):
+     """Serialize first-connect WAL/schema/integrity setup across processes.
+@@ -126,6 +139,7 @@ def _cross_process_init_lock(path: Path):
+     because ``_INIT_LOCK`` still serializes same-process threads and init is
+     idempotent: two racing first-inits mean redundant work, not corruption.
+     """
++    path = _lock_anchor(path)
+     path.parent.mkdir(parents=True, exist_ok=True)
+     lock_path = path.with_name(path.name + ".init.lock")
+     handle = lock_path.open("a+b")
+@@ -177,6 +191,7 @@ def _dispatch_tick_lock(db_path: Path):
+     lock is the defense-in-depth that prevents two dispatchers from ever writing concurrently *regardless of
+     how the second one got there*.
+     """
++    db_path = _lock_anchor(db_path)
+     lock_path = db_path.with_name(db_path.name + ".dispatch.lock")
+     handle = None
+     acquired = False
+diff --git a/tests/hermes_cli/test_kanban_lock_symlink.py b/tests/hermes_cli/test_kanban_lock_symlink.py
+new file mode 100644
+index 0000000000..15913123b3
+--- /dev/null
++++ b/tests/hermes_cli/test_kanban_lock_symlink.py
+@@ -0,0 +1,51 @@
++"""Local patch P-07: kanban lock files follow a symlinked board database."""
++
++from __future__ import annotations
++
++import os
++from pathlib import Path
++
++import pytest
++
++from hermes_cli import kanban_db_connect as kbc
++
++
++@pytest.fixture
++def linked_board(tmp_path):
++    target_dir = tmp_path / "kanban" / "default"
++    target_dir.mkdir(parents=True)
++    target = target_dir / "kanban.db"
++    target.touch()
++    root = tmp_path / "root"
++    root.mkdir()
++    link = root / "kanban.db"
++    link.symlink_to(target)
++    os.chmod(root, 0o555)
++    yield link, target_dir, root
++    os.chmod(root, 0o755)
++
++
++@pytest.mark.skipif(os.geteuid() == 0, reason="root ignores directory permissions")
++def test_init_lock_lives_next_to_target(linked_board):
++    link, target_dir, root = linked_board
++    with kbc._cross_process_init_lock(link):
++        pass
++    assert (target_dir / "kanban.db.init.lock").exists()
++    assert not (root / "kanban.db.init.lock").exists()
++
++
++@pytest.mark.skipif(os.geteuid() == 0, reason="root ignores directory permissions")
++def test_dispatch_lock_is_really_held_behind_readonly_link_dir(linked_board):
++    link, target_dir, root = linked_board
++    with kbc._dispatch_tick_lock(link) as held:
++        assert held is True
++        assert (target_dir / "kanban.db.dispatch.lock").exists()
++        # a second holder must lose: the lock is real, not the read-only no-op fallback
++        with kbc._dispatch_tick_lock(target_dir / "kanban.db") as second:
++            assert second is False
++    assert not (root / "kanban.db.dispatch.lock").exists()
++
++
++def test_plain_path_unchanged(tmp_path):
++    db = tmp_path / "kanban.db"
++    assert kbc._lock_anchor(db) == db

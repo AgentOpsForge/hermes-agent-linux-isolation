@@ -29,6 +29,24 @@ from one another.
 - local patches needed for this setup, with their upstream status
 - scripts to create and verify an agent
 
+## Tools
+
+Everything is driven by a single configuration file, [`platform.toml`](platform.toml): domains,
+trust zones, vaults, services and agents. The scripts derive groups, paths and allowed environment
+variables from it and check it against the isolation rules — nothing is hard-coded to one host.
+
+| Script | What it does |
+| --- | --- |
+| `hermes-agent-create.sh <agent>` | Create the system user, profile, config and systemd unit for one agent. |
+| `hermes-agent-lock.sh <agent>` or `--host` | Apply ownership, permissions, ACLs and systemd hardening; verify, roll back on failure. |
+| `hermes-agent-verify.sh <agent>` or `--host` | Read-only check of one agent and the host layer against `platform.toml`. |
+
+`hermes-agent-lib.py` (rule checker and TOML reader) and `hermes-agent-lib.sh` (shared shell helpers)
+are used by the three scripts and are not run directly. The `platform.toml` in this repository is a
+neutral example — replace it with your own before use. Verify the toolset against `SHA256SUMS`.
+
+Requirements: a Linux host with `systemd`, `setfacl`, `chattr` and Python 3.11+ (for `tomllib`).
+
 ## Tested versions
 
 Each release lists the Hermes Agent version and the distribution it was tested with.

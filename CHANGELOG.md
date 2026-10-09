@@ -7,6 +7,12 @@ All notable changes to this project are documented here. The format follows
 
 ### Added
 
+- Isolation toolset: `hermes-agent-create.sh`, `hermes-agent-lock.sh`, `hermes-agent-verify.sh` with
+  shared libraries, driven by a single `platform.toml`.
+- Example `platform.toml`, gateway hardening drop-in (`units/`), example agent SOUL (`agents/`),
+  and `SHA256SUMS` for the toolset.
+- Local patches P-03 to P-08 with `apply-patches.sh` and a patch overview (`patches/`).
+
 - Repository skeleton: README, support, security and contributing guidelines, changelog.
 - Issue templates (bug report, feature request), issue contact links, pull request template.
 - CI: ShellCheck, Markdown lint, link check and secret scan (gitleaks) on every push and pull request.

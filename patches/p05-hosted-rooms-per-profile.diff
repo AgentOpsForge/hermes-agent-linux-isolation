@@ -1,0 +1,37 @@
+diff --git a/gateway/hosted_rooms.py b/gateway/hosted_rooms.py
+index 36f03ba2ae..a9d0f8e998 100644
+--- a/gateway/hosted_rooms.py
++++ b/gateway/hosted_rooms.py
+@@ -407,10 +407,13 @@ def default_db_path() -> Path:
+     during bot-gateway restart storms, 2026-09-03). Keeping the hosted_room*
+     tables in a dedicated file means profile gateways never open the master
+     session store writable.
++
++    Local patch P-05: profiles run as separate users with isolated homes, so a root file
++    written by every profile gateway is a cross-profile write channel and breaks on file
++    ownership (a -shm created by one user blocks all others). Each profile keeps its own store.
+     """
+     from hermes_constants import get_hermes_home
+-    home = get_hermes_home()
+-    return (home.parent.parent if home.parent.name == "profiles" else home) / "shared-state.db"
++    return get_hermes_home() / "shared-state.db"
+ 
+ 
+ def local_authority_gateway_id() -> str:
+diff --git a/tests/gateway/test_hosted_rooms.py b/tests/gateway/test_hosted_rooms.py
+index 50b8851123..627e3d1a84 100644
+--- a/tests/gateway/test_hosted_rooms.py
++++ b/tests/gateway/test_hosted_rooms.py
+@@ -1310,9 +1310,10 @@ def test_default_db_path_never_names_the_master_session_store(tmp_path, monkeypa
+     monkeypatch.setenv("HERMES_HOME", str(root))
+     from_root = rooms.default_db_path()
+ 
+-    assert from_profile == from_root, "one coordination file per install"
++    # Local patch P-05: one coordination file per profile (isolated per-user profiles)
++    assert from_profile.parent == profile_home
+     assert from_root.parent == root
+-    assert from_root.name != "state.db"
++    assert from_profile.name == from_root.name == "shared-state.db"
+ 
+ 
+ def test_upgrade_keeps_rooms_from_before_the_shared_state_db_split(tmp_path):
