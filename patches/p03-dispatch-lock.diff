@@ -1,0 +1,52 @@
+diff --git a/gateway/kanban_watchers.py b/gateway/kanban_watchers.py
+index abe89a0d96..3bbaf9f982 100644
+--- a/gateway/kanban_watchers.py
++++ b/gateway/kanban_watchers.py
+@@ -11,6 +11,7 @@ from __future__ import annotations
+ 
+ import asyncio
+ import os
++import re
+ import time
+ from pathlib import Path
+ from typing import Any, Optional
+@@ -37,11 +38,24 @@ _GC_INTERVAL_SECONDS = 3600.0
+ _HEALTH_WINDOW = 6
+ 
+ 
++def _dispatch_lock_scope(kanban_cfg) -> str:
++    """Lock-name suffix for a non-empty ``kanban.dispatch_profiles`` allowlist, else ''."""
++    raw = kanban_cfg.get("dispatch_profiles") if isinstance(kanban_cfg, dict) else None
++    if raw is None:
++        return ""
++    names = [str(n) for n in raw] if isinstance(raw, (list, tuple)) else str(raw).split(",")
++    names = sorted({re.sub(r"[^a-z0-9_-]", "", n.strip().lower()) for n in names} - {""})
++    return "+".join(names)
++
++
+ class GatewayKanbanWatchersMixin:
+     """Kanban watcher / notifier / dispatcher loops for GatewayRunner."""
+ 
+     def _owns_kanban_dispatcher_lock(self) -> bool:
+-        return getattr(self, "_kanban_dispatcher_lock_handle", None) is not None
++        # A per-profile lock (kanban.dispatch_profiles set) does not make this gateway the
++        # owner of legacy, unstamped notify subscriptions; only the global lock holder is.
++        return (getattr(self, "_kanban_dispatcher_lock_handle", None) is not None
++                and getattr(self, "_kanban_dispatcher_lock_global", True))
+ 
+     def _release_kanban_dispatcher_lock(self) -> None:
+         """Clear notifier-visible ownership before releasing the OS lock."""
+@@ -235,6 +249,13 @@ class GatewayKanbanWatchersMixin:
+         # lives at the machine-global kanban root, so it serialises ALL gateways.
+         self._kanban_dispatcher_lock_handle = None
+         _lock_path = _kb.kanban_home() / "kanban" / ".dispatcher.lock"
++        self._kanban_dispatcher_lock_global = True
++        # Gateways with disjoint kanban.dispatch_profiles claim disjoint cards, so they may
++        # dispatch side by side on one kanban home: the lock is scoped to the allowlist.
++        _scope = _dispatch_lock_scope(kanban_cfg)
++        if _scope:
++            _lock_path = _kb.kanban_home() / "kanban" / f".dispatcher.{_scope}.lock"
++            self._kanban_dispatcher_lock_global = False
+         _lock_handle, _lock_state = _acquire_singleton_lock(_lock_path)
+         if _lock_state == "contended":
+             logger.info("kanban dispatcher: another gateway already holds the dispatcher "

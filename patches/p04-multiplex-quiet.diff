@@ -1,0 +1,14 @@
+diff --git a/hermes_cli/gateway_multiplex_mode.py b/hermes_cli/gateway_multiplex_mode.py
+index 3744a6150d..a0863a4181 100644
+--- a/hermes_cli/gateway_multiplex_mode.py
++++ b/hermes_cli/gateway_multiplex_mode.py
+@@ -245,6 +245,9 @@ def resolve_multiplex_mode(config) -> MultiplexDecision:
+     retired_opt_out = current is False
+     try:
+         blocker = implicit_multiplex_blocker()
++    except PermissionError as exc:  # isolated per-user profiles: foreign homes are unreadable by design
++        logger.info("Multiplex preflight: other profiles are not readable (%s); serving this profile only", exc)
++        blocker = f"other profiles not readable ({exc})"
+     except Exception as exc:  # a broken preflight must not take the gateway down with it
+         logger.warning("Multiplex preflight failed; starting standalone: %s", exc, exc_info=True)
+         blocker = f"preflight failed ({exc})"

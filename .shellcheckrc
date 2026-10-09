@@ -1,0 +1,17 @@
+# ShellCheck configuration for this repository.
+# The codes below are disabled project-wide because they are false positives for this
+# codebase's patterns, not overlooked problems:
+#
+#   SC2317  Functions are invoked indirectly (the run/add_undo dispatch, traps, and name
+#           arrays such as "$fn"), which ShellCheck cannot follow, so it reports their
+#           bodies as unreachable.
+#   SC1091  hermes-agent-lib.sh is sourced at runtime from the tool directory; it is not
+#           passed to ShellCheck as an input file.
+#   SC2153  WANT/NAME and similar are set inside dispatched check/derive helpers and read
+#           back in the caller; ShellCheck sees only one side and suspects a misspelling.
+#   SC2016  Single-quoted `sh -c '...'` payloads use the CHILD shell's positional parameters
+#           ($1, $2, ...), not parent expansion. That is intentional.
+disable=SC2317
+disable=SC1091
+disable=SC2153
+disable=SC2016
