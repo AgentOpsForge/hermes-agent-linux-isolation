@@ -61,7 +61,7 @@ Planned chapters (added one by one):
 3. [Host setup](docs/03-host-setup.md), step by step
 4. Local patches
 5. Creating and verifying an agent
-6. Hardening the units and user slices
+6. [Hardening the units and user slices](docs/06-hardening.md)
 7. Collaboration through Kanban
 8. Credential pattern: a dedicated service holds the keys
 9. Operations — updates, checks, backup

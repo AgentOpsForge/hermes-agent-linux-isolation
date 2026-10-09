@@ -7,6 +7,7 @@ All notable changes to this project are documented here. The format follows
 
 ### Added
 
+- Chapter 6: hardening the units and user slices (per-agent drop-ins, slice limits, immutable instruction files).
 - Design chapter: design decisions and the automation map (which script automates which step).
 - Chapter 3: host setup (packages, Hermes core and patches, groups, directories, host hardening).
 - Chapter 2: architecture overview (domains and zones, users, groups, fixed IDs, directories, units).
