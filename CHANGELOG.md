@@ -7,6 +7,7 @@ All notable changes to this project are documented here. The format follows
 
 ### Added
 
+- Chapter 9: operations (tag-pinned manual update, post-update checks, logs, monitoring independence, backup/recovery).
 - Chapter 8: credential pattern (a dedicated keyless-to-agents service holds the keys, fixed catalog, approval
   with a kernel-verified sender).
 - Chapter 7: collaboration through Kanban (board as a trust boundary, task flow, per-user dispatch).

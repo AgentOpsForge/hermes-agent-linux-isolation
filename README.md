@@ -64,7 +64,7 @@ Planned chapters (added one by one):
 6. [Hardening the units and user slices](docs/06-hardening.md)
 7. [Collaboration through Kanban](docs/07-kanban.md)
 8. [Credential pattern: a dedicated service holds the keys](docs/08-credentials.md)
-9. Operations — updates, checks, backup
+9. [Operations — updates, checks, backup](docs/09-operations.md)
 10. Limits and known issues
 
 ## Design
