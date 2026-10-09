@@ -57,7 +57,7 @@ The current work targets Hermes Agent v0.21.5 (tag `v2026.9.24`).
 Planned chapters (added one by one):
 
 1. [Threat model](docs/01-threat-model.md) — what user isolation protects and what it does not
-2. Architecture — users, groups, IDs, directories, units
+2. [Architecture](docs/02-architecture.md) — users, groups, IDs, directories, units
 3. Host setup, step by step
 4. Local patches
 5. Creating and verifying an agent
