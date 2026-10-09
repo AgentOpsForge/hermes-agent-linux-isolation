@@ -58,7 +58,7 @@ Planned chapters (added one by one):
 
 1. [Threat model](docs/01-threat-model.md) — what user isolation protects and what it does not
 2. [Architecture](docs/02-architecture.md) — users, groups, IDs, directories, units
-3. Host setup, step by step
+3. [Host setup](docs/03-host-setup.md), step by step
 4. Local patches
 5. Creating and verifying an agent
 6. Hardening the units and user slices
