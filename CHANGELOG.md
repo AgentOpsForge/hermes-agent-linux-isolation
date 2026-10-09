@@ -7,6 +7,7 @@ All notable changes to this project are documented here. The format follows
 
 ### Added
 
+- Chapter 7: collaboration through Kanban (board as a trust boundary, task flow, per-user dispatch).
 - Chapter 6: hardening the units and user slices (per-agent drop-ins, slice limits, immutable instruction files).
 - Design chapter: design decisions and the automation map (which script automates which step).
 - Chapter 3: host setup (packages, Hermes core and patches, groups, directories, host hardening).
