@@ -11,7 +11,7 @@ Do **not** use `hermes update`. It tracks a branch instead of a release tag, par
 changes (your patch series), and restarts gateways on its own. Pin a release tag and update by hand:
 
 1. Pick the target tag. Read the changelog since the pinned version and check whether each local patch
-   is still needed — some may already be upstream (see "Limits and known issues", chapter 10).
+   is still needed — some may already be upstream (see [Limits and known issues](10-limits.md)).
 2. Snapshot the host or VM.
 3. Back up each agent's state.
 4. Stop all gateways.

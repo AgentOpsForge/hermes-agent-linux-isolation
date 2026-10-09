@@ -7,6 +7,8 @@ All notable changes to this project are documented here. The format follows
 
 ### Added
 
+- Chapter 10: limits and known issues (patch maintenance across upgrades, the multiplexing tension,
+  what user isolation does not give, scale and cost).
 - Chapter 9: operations (tag-pinned manual update, post-update checks, logs, monitoring independence, backup/recovery).
 - Chapter 8: credential pattern (a dedicated keyless-to-agents service holds the keys, fixed catalog, approval
   with a kernel-verified sender).
