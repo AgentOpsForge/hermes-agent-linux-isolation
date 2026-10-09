@@ -7,6 +7,8 @@ All notable changes to this project are documented here. The format follows
 
 ### Added
 
+- Chapter 8: credential pattern (a dedicated keyless-to-agents service holds the keys, fixed catalog, approval
+  with a kernel-verified sender).
 - Chapter 7: collaboration through Kanban (board as a trust boundary, task flow, per-user dispatch).
 - Chapter 6: hardening the units and user slices (per-agent drop-ins, slice limits, immutable instruction files).
 - Design chapter: design decisions and the automation map (which script automates which step).
