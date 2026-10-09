@@ -67,6 +67,11 @@ Planned chapters (added one by one):
 9. Operations — updates, checks, backup
 10. Limits and known issues
 
+## Design
+
+[Design](docs/design.md) — why the architecture is shaped this way, and which script automates which
+work package (the automation map).
+
 ## Contributing, security, support
 
 - [CONTRIBUTING.md](CONTRIBUTING.md) — how to propose changes
