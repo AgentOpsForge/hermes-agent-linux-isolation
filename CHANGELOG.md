@@ -7,6 +7,7 @@ All notable changes to this project are documented here. The format follows
 
 ### Added
 
+- Chapter 3: host setup (packages, Hermes core and patches, groups, directories, host hardening).
 - Chapter 2: architecture overview (domains and zones, users, groups, fixed IDs, directories, units).
 - Isolation toolset: `hermes-agent-create.sh`, `hermes-agent-lock.sh`, `hermes-agent-verify.sh` with
   shared libraries, driven by a single `platform.toml`.
