@@ -60,7 +60,7 @@ Planned chapters (added one by one):
 2. [Architecture](docs/02-architecture.md) — users, groups, IDs, directories, units
 3. [Host setup](docs/03-host-setup.md), step by step
 4. [Local patches](docs/04-patches.md)
-5. Creating and verifying an agent
+5. [Creating and verifying an agent](docs/05-create-verify.md)
 6. [Hardening the units and user slices](docs/06-hardening.md)
 7. [Collaboration through Kanban](docs/07-kanban.md)
 8. [Credential pattern: a dedicated service holds the keys](docs/08-credentials.md)
