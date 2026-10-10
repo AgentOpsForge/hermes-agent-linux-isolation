@@ -35,6 +35,8 @@ All notable changes to this project are documented here. The format follows
 
 ### Changed
 
+- Tool: generated config.yaml sets security.allow_lazy_installs false, so an agent never attempts a
+  runtime pip install into the root-owned read-only venv.
 - Example platform.toml: set soul for all agents; note that A2A is open on loopback until tokens are set.
 - Chapter 3 (host setup): pinned supported Python in a world-readable venv, a tirith install step,
   profiles/ at 711, vault directories, and version/permission notes from the fresh-VM validation.
