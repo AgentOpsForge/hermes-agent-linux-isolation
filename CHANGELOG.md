@@ -7,6 +7,8 @@ All notable changes to this project are documented here. The format follows
 
 ### Added
 
+- Chapter 11: keeping confidential data in one zone (local model vs cloud, separate boards, egress per UID,
+  memory and backups in the zone).
 - Chapter 5: creating and verifying an agent (define in platform.toml, create, model login, lock, verify).
 - Chapter 4: local patches (why they exist, the three kinds, apply by hand or via apply-patches.sh).
 - Chapter 10: limits and known issues (patch maintenance across upgrades, the multiplexing tension,
