@@ -321,6 +321,7 @@ snapshot_gateways() {   # effective settings of all gateways (for --host): one l
   local props=Environment,UMask,NoNewPrivileges,CapabilityBoundingSet,AmbientCapabilities,PrivateTmp,PrivateDevices,ProtectSystem,ProtectHome,BindPaths,ReadWritePaths,ProtectKernelTunables,ProtectKernelModules,ProtectKernelLogs,ProtectControlGroups,ProtectClock,ProtectHostname,ProtectProc,RestrictSUIDSGID,LockPersonality,RestrictRealtime,SystemCallArchitectures,RestrictAddressFamilies,MemoryHigh,MemoryMax,TasksMax
   local a
   for a in $(list_agents); do
+    systemctl cat "hermes-gateway-$a" >/dev/null 2>&1 || continue
     systemctl show "hermes-gateway-$a" -p "$props" 2>/dev/null | sed "s/^/$a /"
   done | sort
 }
@@ -363,6 +364,7 @@ if [[ $MODE == host ]]; then
   declare -A NR0=()
   for a in $(list_agents); do
     load_agent "$a" >/dev/null || fail "cannot load the definition of '$a'" 1
+    systemctl cat "$S" >/dev/null 2>&1 || { info "$S has no unit yet (agent not created) - skipped"; continue; }
     [[ $(systemctl is-active "$S" 2>/dev/null || true) == active ]] || fail "$S is not active - start it first, so the result can be checked"
     NR0[$a]=$(unit_prop NRestarts)
   done
@@ -398,6 +400,7 @@ if [[ $MODE == host ]]; then
     RBAD=0
     for a in $(list_agents); do
       load_agent "$a" >/dev/null
+      systemctl cat "$S" >/dev/null 2>&1 || continue
       st=$(systemctl is-active "$S" 2>/dev/null || true); nr=$(unit_prop NRestarts)
       tb=$(journalctl -u "$S" --since "$START" --no-pager -o cat 2>/dev/null | grep -c '^Traceback' || true)
       pe=$(journalctl -u "$S" --since "$START" --no-pager -o cat 2>/dev/null \

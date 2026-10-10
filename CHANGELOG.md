@@ -35,6 +35,8 @@ All notable changes to this project are documented here. The format follows
 
 ### Changed
 
+- Tool: lock --host now sets up the host layer on a greenfield host, skipping agents whose gateway
+  unit does not exist yet (previously it aborted because no agent gateway was active).
 - Example platform.toml: set soul for all agents; note that A2A is open on loopback until tokens are set.
 - Chapter 3 (host setup): pinned supported Python in a world-readable venv, a tirith install step,
   profiles/ at 711, vault directories, and version/permission notes from the fresh-VM validation.
