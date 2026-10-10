@@ -35,6 +35,8 @@ All notable changes to this project are documented here. The format follows
 
 ### Changed
 
+- Chapter 3 (host setup): the default Kanban board lives in the writable home via a root symlink, with a
+  kanban-team default ACL so the shared board DB is group-writable (from the fresh-VM validation).
 - Tool: lock --host no longer treats the global .dispatcher.lock as obsolete — under P-03 it is the
   live notify-owner lock held by the orchestrator, not a stale leftover.
 - Tool: lock --host now sets up the host layer on a greenfield host, skipping agents whose gateway
