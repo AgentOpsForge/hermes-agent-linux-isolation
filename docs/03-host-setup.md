@@ -20,7 +20,12 @@ curl -LsSf https://astral.sh/uv/install.sh | env UV_INSTALL_DIR=/usr/local/bin s
 ```
 
 - `acl` provides `setfacl` (traversal entries for agents), `e2fsprogs` provides `chattr`/`lsattr` (the
-  immutable attribute on profile files). Python must be 3.11 or newer (`tomllib`, used by the tools).
+  immutable attribute on profile files).
+- **Python version.** The tools need Python 3.11 or newer (`tomllib`). Hermes itself requires
+  `>=3.11,<3.14`, and a current distribution may ship a newer default — Ubuntu 26.04 ships 3.14, which
+  is too new. The host's `python3` may also sit under a path the agent users cannot reach. Step 2
+  therefore builds the venv from a pinned, supported Python that `uv` installs in a world-readable
+  location, rather than from the system `python3`.
 - `uv` is installed under `/usr/local/bin`, owned by root. Never use a `uv` from a user's home.
 
 ## 2. Hermes core
@@ -33,14 +38,46 @@ themselves.
 install -d -o root -g root -m 0755 /opt/hermes-agent
 git clone --depth 1 --branch v2026.9.24 https://github.com/NousResearch/hermes-agent.git /opt/hermes-agent
 cd /opt/hermes-agent
-python3 -m venv venv
-uv pip install --python venv/bin/python --compile-bytecode -e ".[all]"
-venv/bin/python -m compileall -q .
 ```
 
+Build the venv from a pinned, supported Python that `uv` installs in a **world-readable** location, so
+the agent users can execute it (they run the interpreter). A Python under a user's home — for example
+`uv`'s default `~/.local` — is not reachable (`/root` is mode `0700`):
+
+```sh
+# a supported Python (choose a version inside >=3.11,<3.14), installed world-readable:
+UV_PYTHON_INSTALL_DIR=/opt/uv-python uv python install 3.13
+chmod -R a+rX /opt/uv-python
+# build the venv from exactly that interpreter, then install Hermes:
+uv venv --python "$(echo /opt/uv-python/cpython-3.13.*/bin/python3.13)" venv
+uv pip install --python venv/bin/python --compile-bytecode -e ".[all]"
+venv/bin/python -m compileall -q .
+# uv leaves world-writable lock files in both trees; the install tree must not be agent-writable:
+chmod o-w venv/.lock /opt/uv-python/.lock 2>/dev/null || true
+```
+
+- The interpreter must be readable and executable by the agent users. A Python under `/root` (mode
+  `0700`) is not reachable — build from a world-readable path such as `/opt/uv-python`.
 - `compileall` writes the bytecode caches now, as root: agents cannot write `__pycache__` later.
 - Do **not** use `hermes update`. It follows the `main` branch instead of a tag, parks or discards
   local changes, and restarts gateways on its own. Updates are done by hand against release tags.
+
+### Command scanner (`tirith`) system-wide
+
+Hermes looks for a command scanner `tirith` (alongside `uv`/`uvx`) in `PATH` and, if it is missing,
+downloads it into the agent's profile — where the agent could later replace it. Install it once,
+root-owned, system-wide, so Hermes finds it in `PATH` first and never writes it into a profile. Let
+Hermes fetch it (its own installer verifies the release), into a throwaway home, then move it into
+place:
+
+```sh
+install -d -m 0700 /tmp/tirith-stage
+HERMES_HOME=/tmp/tirith-stage venv/bin/python \
+  -c 'from tools.tirith_security import _install_tirith; print(_install_tirith())'
+install -o root -g root -m 0755 /tmp/tirith-stage/bin/tirith /usr/local/bin/tirith
+/usr/local/bin/tirith --version
+rm -rf /tmp/tirith-stage
+```
 
 ## 3. Local patches
 
@@ -71,24 +108,30 @@ groupadd --system -g 2091 github
 useradd  --system -u 2091 -g github -d /var/lib/github -M -s /usr/sbin/nologin github
 ```
 
-`hermes-agent-verify.sh --all` later checks that the groups and their members match `platform.toml`.
+- The platform uses fixed IDs in the 2000–2199 range, above the system-account range. `useradd
+  --system` with such a UID prints `uid 2091 is greater than SYS_UID_MAX 999` — that warning is
+  expected and the user is created correctly.
+- `hermes-agent-verify.sh --all` later checks that the groups and their members match `platform.toml`.
 
 ## 5. Base directories
 
 ```sh
 install -d -o root   -g root        -m 0711 /var/lib/hermes
-install -d -o root   -g root        -m 0755 /var/lib/hermes/profiles
+install -d -o root   -g root        -m 0711 /var/lib/hermes/profiles
 install -d -o root   -g kanban-team -m 2770 /var/lib/hermes/kanban
 install -d -o github -g github      -m 0700 /var/lib/github
 install -d -o root   -g root        -m 0755 /srv/vaults
+# one directory per vault under vaults_root, group-owned by the vault's rw group (setgid):
+install -d -o root   -g vault-team-wiki-rw -m 2770 /srv/vaults/team-wiki
 install -d -o root   -g root        -m 0700 /var/backups/hermes
 ```
 
-- `/var/lib/hermes` is `0711`: every user may traverse it, nobody may list it. The next step fixes its
-  ownership and removes any ACLs.
+- `/var/lib/hermes` and `profiles/` are `0711`: every user may traverse them, nobody may list them. The
+  next step fixes their ownership and removes any ACLs.
 - The Kanban home is group-owned by `kanban-team` with the setgid bit (`2770`) so new entries inherit
-  the group. Individual vaults under `/srv/vaults` are set up with the credential service (chapter
-  "Credential pattern").
+  the group. A vault directory must exist before an agent that is `rw`/`ro` on it is created, because
+  that path is one of the agent's `ReadWritePaths`; the vault's Git content is set up with the
+  credential service (chapter "Credential pattern").
 
 ## 6. Ownership and hardening — `hermes-agent-lock.sh --host`
 
@@ -116,7 +159,7 @@ by one with `hermes-agent-create.sh` (chapter "Creating and verifying an agent")
 | Step | By hand | Script |
 | --- | --- | --- |
 | 1 Packages | yes | — (a future Ansible role) |
-| 2 Hermes core | yes | — (a future Ansible role) |
+| 2 Hermes core, venv, `tirith` | yes | — (a future Ansible role) |
 | 3 Local patches | `git apply` | `patches/apply-patches.sh` |
 | 4 Groups and service user | yes | — (a future Ansible role) |
 | 5 Base directories | yes | — (a future Ansible role) |

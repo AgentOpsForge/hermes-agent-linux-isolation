@@ -35,6 +35,8 @@ All notable changes to this project are documented here. The format follows
 
 ### Changed
 
+- Chapter 3 (host setup): pinned supported Python in a world-readable venv, a tirith install step,
+  profiles/ at 711, vault directories, and version/permission notes from the fresh-VM validation.
 - CI: lychee skips the throttled upstream SECURITY.md blob link (still linked in the docs).
 - CI: lychee checks github.com links via the API with a token and retries transient failures.
 - Chapter 1: an agent's own configuration, instructions and keys are protected by root ownership and the
