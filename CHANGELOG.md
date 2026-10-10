@@ -33,6 +33,7 @@ All notable changes to this project are documented here. The format follows
 
 ### Changed
 
+- CI: lychee skips the throttled upstream SECURITY.md blob link (still linked in the docs).
 - CI: lychee checks github.com links via the API with a token and retries transient failures.
 - Chapter 1: an agent's own configuration, instructions and keys are protected by root ownership and the
   immutable attribute, not by the file system boundary alone; profiles must not carry ACLs.

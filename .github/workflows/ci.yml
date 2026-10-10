@@ -55,7 +55,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          args: --no-progress --max-retries 3 --retry-wait-time 10 './**/*.md'
+          args: --no-progress --max-retries 3 --retry-wait-time 10 --exclude NousResearch/hermes-agent/blob './**/*.md'
           fail: true
 
   gitleaks:
