@@ -66,6 +66,7 @@ Planned chapters (added one by one):
 8. [Credential pattern: a dedicated service holds the keys](docs/08-credentials.md)
 9. [Operations — updates, checks, backup](docs/09-operations.md)
 10. [Limits and known issues](docs/10-limits.md)
+11. [Keeping confidential data in one zone](docs/11-confidentiality.md)
 
 ## Design
 
