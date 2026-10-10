@@ -35,6 +35,8 @@ All notable changes to this project are documented here. The format follows
 
 ### Changed
 
+- Tool: lock --host now sets up the host layer on a greenfield host, skipping agents whose gateway
+  unit does not exist yet (previously it aborted because no agent gateway was active).
 - Tool: generated config.yaml sets security.allow_lazy_installs false, so an agent never attempts a
   runtime pip install into the root-owned read-only venv.
 - Example platform.toml: set soul for all agents; note that A2A is open on loopback until tokens are set.
