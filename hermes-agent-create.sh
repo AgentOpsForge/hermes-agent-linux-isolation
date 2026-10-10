@@ -89,6 +89,7 @@ cfg = {
     "curator": {"enabled": False},
     "agent": {"disabled_toolsets": ["connections"]},   # otherwise config migration 45 enables it
     "gateway": {"standalone": False},                   # true stops the gateway from starting
+    "security": {"allow_lazy_installs": False},         # no runtime pip into the root-owned read-only venv
     "timezone": e("A_TZ"),
 }
 if e("A_DISPATCH") == "yes":
