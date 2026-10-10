@@ -44,7 +44,7 @@ while read -r _k _a _b _c _d; do
   esac
 done <<<"$_host_lists"
 unset _host_lists _k _a _b _c _d
-KANBAN_OBSOLETE=".dispatcher.lock"   # one dispatcher lock per home; since P-03 each gateway has .dispatcher.<profile>.lock
+KANBAN_OBSOLETE=""   # P-03 keeps .dispatcher.lock as the live notify-owner lock; nothing is obsolete now
 
 # --- Logging --------------------------------------------------------------------------------
 LOG_FILE="" TEE_PID="" LOG_DONE=0
