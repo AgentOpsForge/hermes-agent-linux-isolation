@@ -133,6 +133,28 @@ install -d -o root   -g root        -m 0700 /var/backups/hermes
   that path is one of the agent's `ReadWritePaths`; the vault's Git content is set up with the
   credential service (chapter "Credential pattern").
 
+### The default Kanban board
+
+Hermes keeps the default board's database at `<root>/kanban.db` — which is the read-only state root. Put
+the real database in the writable Kanban home, leave only a symlink in the root, and grant the Kanban
+group write access with a default ACL so every member can share the board:
+
+```sh
+# the default board lives in the writable Kanban home; the state root holds only a symlink to it
+install -d -o root -g kanban-team -m 2770 /var/lib/hermes/kanban/default
+ln -s kanban/default/kanban.db /var/lib/hermes/kanban.db
+
+# a shared SQLite board must be group-writable; a default ACL grants that on the files Hermes creates
+# later. setgid only inherits the group, and SQLite creates its files 0644 -> 0640 under the gateway
+# umask, so the group would otherwise get no write bit. The local patches put the board's lock files at
+# the symlink target, so they land in this writable directory too.
+setfacl -R    -m g:kanban-team:rwX /var/lib/hermes/kanban
+setfacl -R -d -m g:kanban-team:rwX /var/lib/hermes/kanban
+```
+
+Without this, a gateway fails every dispatcher tick with `kanban.db ... is read-only for this user` (the
+init lock lands in the read-only root, or the shared database is not group-writable).
+
 ## 6. Ownership and hardening — `hermes-agent-lock.sh --host`
 
 ```sh
