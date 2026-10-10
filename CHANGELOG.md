@@ -35,6 +35,8 @@ All notable changes to this project are documented here. The format follows
 
 ### Changed
 
+- Tool: lock --host no longer treats the global .dispatcher.lock as obsolete — under P-03 it is the
+  live notify-owner lock held by the orchestrator, not a stale leftover.
 - Tool: lock --host now sets up the host layer on a greenfield host, skipping agents whose gateway
   unit does not exist yet (previously it aborted because no agent gateway was active).
 - Tool: generated config.yaml sets security.allow_lazy_installs false, so an agent never attempts a
