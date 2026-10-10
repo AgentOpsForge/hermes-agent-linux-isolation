@@ -66,7 +66,10 @@ vaults_rw = "all"                      # member of every vault-<v>-rw
 kanban_acl = ["team"]
 
 # --- Agents -------------------------------------------------------------------------------------------
+# A2A is protected by per-caller tokens set at deploy time (A2A_PEER_TOKENS / A2A_TOKEN_<PEER> in the
+# profile .env), never in this file. Without tokens configured, A2A is open on loopback -- set them.
 [agents.assistant]
+soul = "agents/example-SOUL.md"
 description = "Orchestrator; creates and reviews tasks"
 zone = "Z1"
 role = "orchestrator"
@@ -87,6 +90,7 @@ linger = true
 timezone = "UTC"
 
 [agents.worker]
+soul = "agents/example-SOUL.md"
 description = "Worker with A2A back to the orchestrator"
 zone = "Z2"
 role = "worker"
