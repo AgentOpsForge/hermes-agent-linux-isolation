@@ -7,6 +7,9 @@ All notable changes to this project are documented here. The format follows
 
 ### Added
 
+- Chapter 5 (creating an agent): a generic A2A-token procedure — receiver A2A_PEER_TOKENS so a
+  tokenless call gets 401, a caller-side A2A_TOKEN variable plus the a2a_agents bearer config, re-locking
+  after each change; notes that create.sh does not generate the caller's a2a_agents block.
 - Chapter 11: keeping confidential data in one zone (local model vs cloud, separate boards, egress per UID,
   memory and backups in the zone).
 - Chapter 5: creating and verifying an agent (define in platform.toml, create, model login, lock, verify).
