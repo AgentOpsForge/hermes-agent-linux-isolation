@@ -79,3 +79,22 @@ jobs:
       - name: Scan full git history
         run: |
           "$RUNNER_TEMP/gitleaks" git --no-banner --redact --verbose .
+
+  checksums:
+    name: SHA256SUMS
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Verify SHA256SUMS matches the tracked files
+        run: |
+          sha256sum -c SHA256SUMS
+          missing=0
+          while IFS= read -r f; do
+            grep -q "  ${f}\$" SHA256SUMS || { echo "not listed in SHA256SUMS: $f"; missing=1; }
+          done < <(git ls-files \
+            hermes-agent-create.sh hermes-agent-lock.sh hermes-agent-verify.sh \
+            hermes-agent-lib.sh hermes-agent-lib.py platform.toml \
+            units/hermes-gateway-hardening.conf agents/example-SOUL.md 'patches/*')
+          exit "$missing"

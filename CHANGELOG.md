@@ -5,8 +5,13 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-10-11
+
 ### Added
 
+- `SHA256SUMS` now also covers the local patches (patches/*), and a CI job checks it stays in sync
+  with the tracked files.
+- README: how to verify the signed release tag and `SHA256SUMS`.
 - Chapter 5 (creating an agent): a generic A2A-token procedure — receiver A2A_PEER_TOKENS so a
   tokenless call gets 401, a caller-side A2A_TOKEN variable plus the a2a_agents bearer config, re-locking
   after each change; notes that create.sh does not generate the caller's a2a_agents block.
@@ -38,6 +43,8 @@ All notable changes to this project are documented here. The format follows
 
 ### Changed
 
+- `SHA256SUMS` regenerated for the current toolset — four entries (create, lock, lib.sh,
+  platform.toml) had gone stale after the fix changes.
 - Chapter 3 (host setup): the default Kanban board lives in the writable home via a root symlink, with a
   kanban-team default ACL so the shared board DB is group-writable (from the fresh-VM validation).
 - Tool: lock --host no longer treats the global .dispatcher.lock as obsolete — under P-03 it is the
