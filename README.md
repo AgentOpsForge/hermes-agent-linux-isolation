@@ -4,8 +4,9 @@ A step-by-step guide for running several [Hermes Agent](https://github.com/NousR
 instances on one Linux host, each under its own system user, so that the agents are isolated
 from one another.
 
-> **Status: work in progress.** The chapters are being written and have not yet been validated
-> on a freshly installed host. Do not rely on them in production yet.
+> **Status: v0.1.0 — first tagged release.** The guide was rebuilt verbatim on a freshly installed
+> host and the toolset verifies clean. Treat it as early: review it against your own environment
+> before production use.
 
 ## What this is — and what it is not
 
@@ -51,6 +52,19 @@ Requirements: a Linux host with `systemd`, `setfacl`, `chattr` and Python 3.11+ 
 
 Each release lists the Hermes Agent version and the distribution it was tested with.
 The current work targets Hermes Agent v0.21.5 (tag `v2026.9.24`).
+
+## Releases and verification
+
+Releases are tagged `vMAJOR.MINOR.PATCH`, and the tag is GPG-signed — GitHub marks a correctly signed
+tag as *Verified*. After checking out a release, verify both the tag and the files:
+
+```sh
+git verify-tag v0.1.0     # needs the signer's public key in your GPG keyring
+sha256sum -c SHA256SUMS   # checks the toolset and patches against the recorded hashes
+```
+
+`SHA256SUMS` covers the scripts, `platform.toml`, the gateway hardening drop-in, the example SOUL and
+the local patches; CI verifies it stays in sync with the tracked files.
 
 ## Contents
 
