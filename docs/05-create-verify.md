@@ -54,7 +54,56 @@ permission errors), isolation, and the config. Rights are always checked with a 
 
 The toolset handles the user, profile, config, unit and hardening. Operator-specific pieces are done by
 hand and are outside the generic toolset: messaging channels, creating vault groups, network and egress
-rules, A2A tokens, the memory backend's workspace, and any scheduled jobs.
+rules, A2A tokens (see the next section), the memory backend's workspace, and any scheduled jobs.
+
+## A2A tokens
+
+`hermes-agent-create.sh` writes only `A2A_AGENT_NAME` and `A2A_PORT` into `.env`; it does not set up
+authentication between agents. Until a token is configured, an agent's A2A server answers an
+unauthenticated request on its loopback port with `200` — any local user who can reach `127.0.0.1:<port>`
+could call it. Configure a token for every caller→receiver pair so the receiver rejects tokenless calls
+with `401`. `hermes-agent-verify.sh` checks exactly this: it reports the A2A check as OK only once the
+server answers `401` without a token.
+
+A token is a shared secret for one direction: caller *c* calling receiver *r* uses one value, held by
+both. Use an independent 32-byte hex value per pair.
+
+**Receiver** — set `A2A_PEER_TOKENS` on every agent that runs an A2A server (every agent with an `a2a`
+port), listing the callers allowed to reach it (`<caller>:<token>[,<caller>:<token>]`). With `worker`
+allowed to call `assistant`:
+
+```sh
+# as root; the profile is locked, so clear the immutable flag, append, re-lock
+TOK=$(openssl rand -hex 32)                 # keep this value — the caller needs the same one
+chattr -i /var/lib/hermes/profiles/assistant/.env
+printf 'A2A_PEER_TOKENS=worker:%s\n' "$TOK" >> /var/lib/hermes/profiles/assistant/.env
+bash hermes-agent-lock.sh assistant         # restores owner, mode and the immutable flag, then re-checks
+```
+
+**Caller** — the caller holds the same value in its own `.env` as `A2A_TOKEN_<TARGET>` and references it
+from `config.yaml`, so the secret never appears in the config:
+
+```sh
+# .env of the caller (worker): the token for calling assistant
+chattr -i /var/lib/hermes/profiles/worker/.env
+printf 'A2A_TOKEN_ASSISTANT=%s\n' "$TOK" >> /var/lib/hermes/profiles/worker/.env
+bash hermes-agent-lock.sh worker
+```
+
+```yaml
+# config.yaml of the caller (worker): address the target and read the token from the environment
+a2a_agents:
+  assistant:
+    url: http://127.0.0.1:9900
+    auth:
+      type: bearer
+      token: "${env:A2A_TOKEN_ASSISTANT}"
+```
+
+`hermes-agent-create.sh` does not generate the caller's `a2a_agents` block — which agents an agent calls,
+and how it addresses them, depends on the role and is added by hand (or by the model's own configuration).
+Add one block per target, and a matching `A2A_PEER_TOKENS` entry on each receiver. Re-run the lock after
+every `.env` or `config.yaml` change so the file returns to the hardened, immutable state.
 
 ## Common pitfalls
 
@@ -93,3 +142,4 @@ sudo userdel <name>-agent
 | Model-provider login | interactive, as the agent user | — |
 | Lock to the hardened state | — | `hermes-agent-lock.sh <name>` ([Hardening](06-hardening.md)) |
 | Verify the result | — | `hermes-agent-verify.sh <name>` |
+| A2A tokens (if the agent has peers) | edit `.env` + `config.yaml`, then re-lock | — |
